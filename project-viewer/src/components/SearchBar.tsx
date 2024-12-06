@@ -4,12 +4,22 @@ import '../styles/SearchBar.css';
 
 const SearchBar: React.FC = () => {
   const [username, setUsername] = useState('');
-  const { fetchRepos } = useContext(GithubContext);
+  const { fetchRepos, loading } = useContext(GithubContext);
 
   const handleSearch = () => {
     if (username.trim()) {
       fetchRepos(username);
     }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
+
+  const handleClear = () => {
+    setUsername('');
   };
 
   return (
@@ -19,8 +29,21 @@ const SearchBar: React.FC = () => {
         placeholder="Enter GitHub username"
         value={username}
         onChange={(e) => setUsername(e.target.value)}
+        onKeyDown={handleKeyPress}
+        aria-label="GitHub username"
       />
-      <button onClick={handleSearch}>Search</button>
+      <button
+        onClick={handleSearch}
+        disabled={loading || !username.trim()}
+        aria-label="Search repositories"
+      >
+        {loading ? 'Searching...' : 'Search'}
+      </button>
+      {username && (
+        <button onClick={handleClear} aria-label="Clear search">
+          Clear
+        </button>
+      )}
     </div>
   );
 };
