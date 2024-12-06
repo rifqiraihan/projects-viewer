@@ -1,8 +1,5 @@
-import React, { createContext, useState, ReactNode, useEffect } from 'react';
+import React, { createContext, useState, ReactNode } from 'react';
 import axios from 'axios';
-
-const GITHUB_TOKEN = '';
-
 
 interface Repo {
   id: number;
@@ -47,11 +44,7 @@ export const GithubProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     setReadme(null);
     setSelectedRepo(null);
     try {
-      const { data } = await axios.get(`https://api.github.com/users/${username}/repos`, {
-        headers: {
-          Authorization: `token ${GITHUB_TOKEN}`, 
-        },
-      });
+      const { data } = await axios.get(`https://api.github.com/users/${username}/repos`);
       setRepos(data);
       setReadme(null);
       setSelectedRepo(null);
@@ -71,9 +64,7 @@ export const GithubProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
     try {
       const { data } = await axios.get(`https://api.github.com/repos/${username}/${repo}/readme`, {
-        headers: {
-          Authorization: `token ${GITHUB_TOKEN}`, 
-        },
+        headers: { Accept: 'application/vnd.github.v3.raw' }, 
       });
       if (data && data.content) {
         setReadme(atob(data.content));
