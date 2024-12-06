@@ -1,12 +1,9 @@
 import React, { createContext, useState, ReactNode } from 'react';
 import axios from 'axios';
 
-interface Repo {
-  id: number;
-  name: string;
-  description: string;
-}
+const GITHUB_TOKEN = process.env.REACT_APP_GITHUB_TOKEN; 
 
+interface Repo { id: number; name: string; description: string; }
 interface GithubContextProps {
   repos: Repo[];
   readme: string | null;
@@ -44,7 +41,11 @@ export const GithubProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     setReadme(null);
     setSelectedRepo(null);
     try {
-      const { data } = await axios.get(`https://api.github.com/users/${username}/repos`);
+      const { data } = await axios.get(`https://api.github.com/users/${username}/repos`, {
+        headers: {
+          Authorization: `token ${GITHUB_TOKEN}`,
+        },
+      });
       setRepos(data);
       setReadme(null);
       setSelectedRepo(null);
@@ -57,14 +58,14 @@ export const GithubProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
   const selectRepo = async (repo: string) => {
     if (!username) return;
-
     setSelectedRepo(repo);
     setReadme(null);
     setLoadingReadme(repo);
-
     try {
       const { data } = await axios.get(`https://api.github.com/repos/${username}/${repo}/readme`, {
-        headers: { Accept: 'application/vnd.github.v3.raw' }, 
+        headers: {
+          Authorization: `token ${GITHUB_TOKEN}`,
+        },
       });
       if (data && data.content) {
         setReadme(atob(data.content));
@@ -79,18 +80,7 @@ export const GithubProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   };
 
   return (
-    <GithubContext.Provider
-      value={{
-        repos,
-        readme,
-        selectedRepo,
-        username,
-        loading,
-        loadingReadme,
-        fetchRepos,
-        selectRepo,
-      }}
-    >
+    <GithubContext.Provider value={{ repos, readme, selectedRepo, username, loading, loadingReadme, fetchRepos, selectRepo }}>
       {children}
     </GithubContext.Provider>
   );
