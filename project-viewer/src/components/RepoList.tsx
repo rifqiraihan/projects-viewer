@@ -1,12 +1,18 @@
 import React, { useContext } from 'react';
 import { GithubContext } from '../context/GithubContext';
 import '../styles/RepoList.css';
+import { Helmet } from 'react-helmet';
+
 
 const RepoList: React.FC = () => {
   const { repos, selectRepo, readme, selectedRepo, loading, loadingReadme } = useContext(GithubContext);
 
   return (
     <div className="repo-list-container">
+      <Helmet>
+        <title>{selectedRepo ? `${selectedRepo} - GitHub Projects` : 'GitHub Projects Viewer'}</title>
+        <meta name="description" content={`View repositories and README for ${selectedRepo || 'GitHub user'}`} />
+      </Helmet>
       {loading ? (
         <p className="loading-message">Loading repositories...</p>
       ) : repos.length === 0 ? (

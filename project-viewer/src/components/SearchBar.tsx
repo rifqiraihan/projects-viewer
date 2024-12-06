@@ -1,5 +1,6 @@
 import React, { useState, useContext } from 'react';
 import { GithubContext } from '../context/GithubContext';
+import { Helmet } from 'react-helmet';
 import '../styles/SearchBar.css';
 
 const SearchBar: React.FC = () => {
@@ -24,6 +25,9 @@ const SearchBar: React.FC = () => {
 
   return (
     <div className="search-bar">
+      <Helmet>
+        <meta name="description" content={`Search for GitHub repositories for user ${username}`} />
+      </Helmet>
       <input
         type="text"
         placeholder="Enter GitHub username"
