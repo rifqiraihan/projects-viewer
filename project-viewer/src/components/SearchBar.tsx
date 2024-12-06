@@ -1,21 +1,24 @@
-import React, { useState } from 'react';
-import { useGithubContext } from '../context/GithubContext';
+import React, { useState, useContext } from 'react';
+import { GithubContext } from '../context/GithubContext';
+import '../styles/SearchBar.css';
 
 const SearchBar: React.FC = () => {
-  const [input, setInput] = useState<string>('');
-  const { setUsername } = useGithubContext();
+  const [username, setUsername] = useState('');
+  const { fetchRepos } = useContext(GithubContext);
 
   const handleSearch = () => {
-    setUsername(input);
+    if (username.trim()) {
+      fetchRepos(username);
+    }
   };
 
   return (
     <div className="search-bar">
       <input
         type="text"
-        value={input}
-        onChange={(e) => setInput(e.target.value)}
-        placeholder="Enter GitHub Username"
+        placeholder="Enter GitHub username"
+        value={username}
+        onChange={(e) => setUsername(e.target.value)}
       />
       <button onClick={handleSearch}>Search</button>
     </div>

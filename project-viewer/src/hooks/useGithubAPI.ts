@@ -1,10 +1,8 @@
-// In useGithubAPI.ts
-
-import { useState, useEffect } from 'react';
-import { useGithubContext } from '../context/GithubContext';
+import { useState, useEffect, useContext } from 'react';
+import { GithubContext } from '../context/GithubContext';
 
 export const useGithubAPI = (username: string) => {
-  const { setRepos, setReadme } = useGithubContext();  // Make sure this is getting the context
+  const { fetchRepos, selectRepo, repos, readme, selectedRepo } = useContext(GithubContext);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
 
@@ -12,24 +10,22 @@ export const useGithubAPI = (username: string) => {
     if (!username) return;
     setLoading(true);
     setError('');
-    fetch(`https://api.github.com/users/${username}/repos`)
-      .then((response) => response.json())
-      .then((data) => {
-        setRepos(data);  // Update the context with the repo data
-        setLoading(false);
-      })
-      .catch((err) => {
-        setError('Error fetching repositories');
-        setLoading(false);
-      });
-  }, [username, setRepos]);
+    fetchRepos(username);
+    setLoading(false);
+  }, [username, fetchRepos]);
 
   const fetchReadme = (repo: string) => {
-    fetch(`https://api.github.com/repos/${username}/${repo}/readme`)
-      .then((response) => response.json())
-      .then((data) => setReadme(atob(data.content)))
-      .catch(() => setReadme('Error fetching readme'));
+    setLoading(true);
+    selectRepo(repo);
+    setLoading(false);
   };
 
-  return { loading, error, fetchReadme };
+  return {
+    loading,
+    error,
+    repos,
+    readme,
+    selectedRepo,
+    fetchReadme,
+  };
 };

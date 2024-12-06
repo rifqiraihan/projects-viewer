@@ -1,41 +1,106 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useState, ReactNode, useEffect } from 'react';
+import axios from 'axios';
 
-// Define the shape of the context data
-interface GithubContextType {
-  username: string;
-  repos: string[];
-  readme: string;
-  setUsername: (username: string) => void;
-  setRepos: (repos: string[]) => void;
-  setReadme: (readme: string) => void;
+const GITHUB_TOKEN = '';
+
+
+interface Repo {
+  id: number;
+  name: string;
+  description: string;
 }
 
-// Create the context with an initial value (it will be updated later)
-const GithubContext = createContext<GithubContextType | undefined>(undefined);
-
-// Define the props for the provider
-interface GithubProviderProps {
-  children: ReactNode;
+interface GithubContextProps {
+  repos: Repo[];
+  readme: string | null;
+  selectedRepo: string | null;
+  username: string | null;
+  loading: boolean;
+  loadingReadme: string | null;
+  fetchRepos: (username: string) => void;
+  selectRepo: (repo: string) => void;
 }
 
-// Create the provider component
-export const GithubProvider: React.FC<GithubProviderProps> = ({ children }) => {
-  const [username, setUsername] = useState<string>('');
-  const [repos, setRepos] = useState<string[]>([]);
-  const [readme, setReadme] = useState<string>('');
+export const GithubContext = createContext<GithubContextProps>({
+  repos: [],
+  readme: null,
+  selectedRepo: null,
+  username: null,
+  loading: false,
+  loadingReadme: null,
+  fetchRepos: () => {},
+  selectRepo: () => {},
+});
+
+export const GithubProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [repos, setRepos] = useState<Repo[]>([]);
+  const [readme, setReadme] = useState<string | null>(null);
+  const [selectedRepo, setSelectedRepo] = useState<string | null>(null);
+  const [username, setUsername] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [loadingReadme, setLoadingReadme] = useState<string | null>(null);
+
+  const fetchRepos = async (username: string) => {
+    setUsername(username);
+    setLoading(true);
+    setRepos([]);
+    setReadme(null);
+    setSelectedRepo(null);
+    try {
+      const { data } = await axios.get(`https://api.github.com/users/${username}/repos`, {
+        headers: {
+          Authorization: `token ${GITHUB_TOKEN}`, 
+        },
+      });
+      setRepos(data);
+      setReadme(null);
+      setSelectedRepo(null);
+    } catch (error) {
+      console.error('Error fetching repos:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const selectRepo = async (repo: string) => {
+    if (!username) return;
+
+    setSelectedRepo(repo);
+    setReadme(null);
+    setLoadingReadme(repo);
+
+    try {
+      const { data } = await axios.get(`https://api.github.com/repos/${username}/${repo}/readme`, {
+        headers: {
+          Authorization: `token ${GITHUB_TOKEN}`, 
+        },
+      });
+      if (data && data.content) {
+        setReadme(atob(data.content));
+      } else {
+        setReadme('No Readme available');
+      }
+    } catch (error) {
+      setReadme('No Readme available');
+    } finally {
+      setLoadingReadme(null);
+    }
+  };
 
   return (
-    <GithubContext.Provider value={{ username, repos, readme, setUsername, setRepos, setReadme }}>
+    <GithubContext.Provider
+      value={{
+        repos,
+        readme,
+        selectedRepo,
+        username,
+        loading,
+        loadingReadme,
+        fetchRepos,
+        selectRepo,
+      }}
+    >
       {children}
     </GithubContext.Provider>
   );
-};
-
-// Custom hook to use the context
-export const useGithubContext = () => {
-  const context = useContext(GithubContext);
-  if (!context) {
-    throw new Error('useGithubContext must be used within a GithubProvider');
-  }
-  return context;
 };
