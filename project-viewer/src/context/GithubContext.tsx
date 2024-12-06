@@ -1,7 +1,9 @@
 import React, { createContext, useState, ReactNode } from 'react';
 import axios from 'axios';
 
-const GITHUB_TOKEN = process.env.REACT_APP_GITHUB_TOKEN; 
+const GITHUB_TOKEN = import.meta.env.VITE_REACT_APP_GITHUB_TOKEN; 
+
+console.log(GITHUB_TOKEN)
 
 interface Repo { id: number; name: string; description: string; }
 interface GithubContextProps {
